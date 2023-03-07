@@ -1,5 +1,5 @@
-/bin
+*/bin
 /vscode
-/obj
-/Properties
-appsettings*
+*/obj
+/web/Properties
+*/appsettings*
