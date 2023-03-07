@@ -1,3 +1,5 @@
+namespace Domain.Exceptions;
+
 public sealed class AccountDoesNotBelongToOwnerException : BadRequestException
 {
     public AccountDoesNotBelongToOwnerException(Guid ownerId, Guid accountId)

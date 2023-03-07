@@ -1,3 +1,5 @@
+namespace Domain.Exceptions;
+
 public sealed class OwnerNotFoundException : NotFoundException
 {
     public OwnerNotFoundException(Guid ownerId)

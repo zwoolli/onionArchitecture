@@ -1,5 +1,3 @@
-using System;
-
 namespace Domain.Exceptions;
 public abstract class BadRequestException : Exception
 {

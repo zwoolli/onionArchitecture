@@ -1,3 +1,5 @@
+namespace Domain.Exceptions;
+
 public sealed class AccountNotFoundException : NotFoundException
 {
     public AccountNotFoundException(Guid accountId)
