@@ -1,6 +1,5 @@
-*/bin
-/vscode
-*/obj
-/web/Properties
-*/appsettings*
-/.vscode
+**/bin/*
+**/obj/*
+**/.vscode/*
+src/Web/Properties/
+src/Web/appsettings*
