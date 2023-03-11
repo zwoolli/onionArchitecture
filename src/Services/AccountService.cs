@@ -26,7 +26,7 @@ internal sealed class AccountService : IAccountService
 
         account.OwnerId = owner.Id;
 
-        this._repositoryManager.AccountRepository.Insert(account);
+        await this._repositoryManager.AccountRepository.InsertAsync(account);
 
         await this._repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -54,7 +54,7 @@ internal sealed class AccountService : IAccountService
             throw new AccountDoesNotBelongToOwnerException(owner.Id, account.Id);
         }
 
-        this._repositoryManager.AccountRepository.Remove(account);
+        await this._repositoryManager.AccountRepository.RemoveAsync(account);
 
         await this._repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
     }

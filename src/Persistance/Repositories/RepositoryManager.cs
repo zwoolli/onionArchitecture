@@ -9,8 +9,6 @@ public sealed class RepositoryManager : IRepositoryManager
     private readonly IUnitOfWork _unitOfWork;
     private readonly string _connectionString;
 
-//TODO figure out how repositories and unit of work can share a transaction
-//https://stackoverflow.com/questions/38440974/should-i-create-a-brand-new-sqlconnection-each-time-i-want-to-use-it-or-just-at
     public RepositoryManager(
         IDBconfiguration configuration,
         IOwnerRepository ownerRepository, 

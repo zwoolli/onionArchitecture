@@ -20,7 +20,7 @@ internal sealed class OwnerService : IOwnerService
     {
         Owner owner = ownerForCreationDto.Adapt<Owner>();
 
-        this._repositoryManager.OwnerRepository.Insert(owner);
+        await this._repositoryManager.OwnerRepository.InsertAsync(owner);
 
         await this._repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -36,7 +36,7 @@ internal sealed class OwnerService : IOwnerService
             throw new OwnerNotFoundException(ownerId);
         }
 
-        this._repositoryManager.OwnerRepository.Remove(owner);
+        await this._repositoryManager.OwnerRepository.RemoveAsync(owner);
 
         await this._repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
     }
