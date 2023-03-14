@@ -1,19 +1,18 @@
-using Domain.Repositories;
 using Services.Abstractions;
 
 namespace Services;
 
 public sealed class ServiceManager : IServiceManager
 {
-    private readonly Lazy<IOwnerService> _lazyOwnerService;
-    private readonly Lazy<IAccountService> _lazyAccountService;
+    private readonly IOwnerService _ownerService;
+    private readonly IAccountService _accountService;
 
-    public ServiceManager(IRepositoryManager repositoryManager)
+    public ServiceManager(IOwnerService ownerService, IAccountService accountService)
     {
-        this._lazyOwnerService = new Lazy<IOwnerService>(() => new OwnerService(repositoryManager));
-        this._lazyAccountService = new Lazy<IAccountService>(() => new AccountService(repositoryManager));
+        this._ownerService = ownerService;
+        this._accountService = accountService;
     }
-    public IOwnerService OwnerService => this._lazyOwnerService.Value;
+    public IOwnerService OwnerService => this._ownerService;
 
-    public IAccountService AccountService => this._lazyAccountService.Value;
+    public IAccountService AccountService => this._accountService;
 }
