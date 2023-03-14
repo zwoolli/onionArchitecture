@@ -2,11 +2,11 @@ using Domain.Repositories;
 
 namespace Persistance.Repositories;
 
-public abstract class Repository<T> : IRepository<T> where T : class
+public abstract class RepositoryBase<T> : IRepository<T> where T : class
 {
     private IDBConnector _dbConnector;
 
-    public Repository(IDBConnector dbConnector)
+    public RepositoryBase(IDBConnector dbConnector)
     {
         this._dbConnector = dbConnector;
     }

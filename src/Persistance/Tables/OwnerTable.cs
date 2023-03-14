@@ -1,8 +1,10 @@
 using Domain.Entities;
 
 namespace Persistance.Tables;
+
 public class OwnerTable
 {
+    public OwnerTable() {}
     public OwnerTable(Owner owner)
     {
         this.owner_id = owner.Id;

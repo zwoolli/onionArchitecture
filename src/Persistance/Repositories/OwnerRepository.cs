@@ -2,12 +2,10 @@ using Dapper;
 using Domain.Repositories;
 using Domain.Entities;
 using Persistance.Tables;
-
+using System.Data.Common;
 namespace Persistance.Repositories;
 
-// Add schema folder back to make queries easier
-//https://github.com/zwoolli/beamBuddy/blob/main/src/DataAccess/SectionRepository.cs
-internal sealed class OwnerRepository : Repository<Owner>, IOwnerRepository
+internal sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 {
     public OwnerRepository(IDBConnector dbConnector) : base(dbConnector) {}
 
@@ -21,26 +19,61 @@ internal sealed class OwnerRepository : Repository<Owner>, IOwnerRepository
         throw new NotImplementedException();
     }
 
-    public override Task InsertAsync(Owner owner)
+    public override async Task InsertAsync(Owner owner)
     {
+        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbConnection connection = transaction.Connection!;
         OwnerTable dto = new OwnerTable(owner);
 
         string sqlOwner = $@"
-                            INSERT INTO {nameof(Owner)} (
-                                {nameof(OwnerTable.owner_id)},
+                            INSERT INTO {nameof(Owner)} 
+                            (
                                 {nameof(OwnerTable.name)},
                                 {nameof(OwnerTable.date_of_birth)}
                                 {nameof(OwnerTable.address)}
+                            )
+                            VALUES 
+                            (
+                                @{nameof(OwnerTable.name)},
+                                @{nameof(OwnerTable.date_of_birth)},
+                                @{nameof(OwnerTable.address)}
                             )";
 
-//TODO WRITE THIS
         string sqlAccount = $@"
-                            ";
-        throw new NotImplementedException();
+                            INSERT INTO {nameof(Account)}
+                            (
+                                {nameof(AccountTable.owner_id)},
+                                {nameof(AccountTable.account_type)},
+                                {nameof(AccountTable.date_created)}
+                            )
+                            VALUES
+                            (
+                                @{nameof(AccountTable.owner_id)},
+                                @{nameof(AccountTable.account_type)},
+                                @{nameof(AccountTable.date_created)}
+                            )";
+
+        await connection.ExecuteAsync(sqlOwner, dto, transaction);
+        await connection.ExecuteAsync(sqlAccount, dto.accounts, transaction);
     }
 
-    public override Task RemoveAsync(Owner item)
+    public override async Task RemoveAsync(Owner owner)
     {
-        throw new NotImplementedException();
+        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbConnection connection = transaction.Connection!;
+        Guid id = owner.Id;
+
+        string sqlOwner = @$"
+                            DELETE
+                            FROM {nameof(Owner)}
+                            WHERE {nameof(OwnerTable.owner_id)} = @{nameof(id)}";
+
+        string sqlAccount = @$"
+                            DELETE
+                            FROM {nameof(Account)}
+                            WHERE {nameof(AccountTable.owner_id)} = @{nameof(id)}";
+
+        await connection.ExecuteAsync(sqlAccount, new {id}, transaction);
+        await connection.ExecuteAsync(sqlOwner, new {id}, transaction);
     }
 }
