@@ -9,14 +9,70 @@ internal sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 {
     public OwnerRepository(IDBConnector dbConnector) : base(dbConnector) {}
 
-    public Task<IEnumerable<Owner>> GetAllAsync(CancellationToken cancellationToken = default)
+    private async Task<IEnumerable<Owner>> _GetAsync(string sql, object? param)
     {
-        throw new NotImplementedException();
+        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbConnection connection = transaction.Connection!;
+
+        Dictionary<Guid, OwnerTable> ownerDictionary = new Dictionary<Guid, OwnerTable>();
+
+        IEnumerable<OwnerTable> dtos = (
+            await connection.QueryAsync<OwnerTable, AccountTable, OwnerTable>(
+                sql,
+                (ownerDto, accountDto) =>
+                {
+                    OwnerTable ownerEntry;
+
+                    if (!ownerDictionary.TryGetValue(ownerDto.owner_id, out ownerEntry!))
+                    {
+                        ownerEntry = ownerDto;
+                        ownerEntry.accounts = new List<AccountTable>();
+                        ownerDictionary.Add(ownerEntry.owner_id, ownerEntry);
+                    }
+
+                    if (accountDto != null) ownerEntry.accounts.Add(accountDto);
+                    return ownerEntry;
+                },
+                transaction: transaction,
+                param: param,
+                splitOn: AccountTable.Column.AccountId
+            )
+        )
+        .Distinct();
+
+        return dtos.Select(d => d.Adapt());
+    }
+    public async Task<IEnumerable<Owner>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string sql = $@"
+                        SELECT      *
+                        FROM        {OwnerTable.Title}
+                        LEFT JOIN   {AccountTable.Title}
+                        ON          ({OwnerTable.Title}.{OwnerTable.Column.OwnerId} = {AccountTable.Title}.{AccountTable.Column.OwnerId})";
+
+        IEnumerable<Owner> owners = await this._GetAsync(sql, null);
+
+        return owners;
     }
 
-    public Task<Owner> GetByIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    public async Task<Owner> GetByIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        string sql = $@"
+                        SELECT      *
+                        FROM        {OwnerTable.Title}
+                        LEFT JOIN   {AccountTable.Title}
+                        ON          ({OwnerTable.Title}.{OwnerTable.Column.OwnerId} = {AccountTable.Title}.{AccountTable.Column.OwnerId})
+                        WHERE       {OwnerTable.Title}.{OwnerTable.Column.OwnerId} = @{nameof(ownerId)}";
+
+        IEnumerable<Owner> owners = await this._GetAsync(sql, ownerId);
+
+        Owner owner = owners.DefaultIfEmpty(new Owner()).First();
+
+        return owner;
     }
 
     public override async Task InsertAsync(Owner owner)
@@ -26,31 +82,31 @@ internal sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
         OwnerTable dto = new OwnerTable(owner);
 
         string sqlOwner = $@"
-                            INSERT INTO {nameof(Owner)} 
+                            INSERT INTO {OwnerTable.Title} 
                             (
-                                {nameof(OwnerTable.name)},
-                                {nameof(OwnerTable.date_of_birth)}
-                                {nameof(OwnerTable.address)}
+                                {OwnerTable.Column.Name},
+                                {OwnerTable.Column.DateOfBirth}
+                                {OwnerTable.Column.Address}
                             )
                             VALUES 
                             (
-                                @{nameof(OwnerTable.name)},
-                                @{nameof(OwnerTable.date_of_birth)},
-                                @{nameof(OwnerTable.address)}
+                                @{OwnerTable.Column.Name},
+                                @{OwnerTable.Column.DateOfBirth},
+                                @{OwnerTable.Column.Address}
                             )";
 
         string sqlAccount = $@"
-                            INSERT INTO {nameof(Account)}
+                            INSERT INTO {AccountTable.Title}
                             (
-                                {nameof(AccountTable.owner_id)},
-                                {nameof(AccountTable.account_type)},
-                                {nameof(AccountTable.date_created)}
+                                {AccountTable.Column.OwnerId},
+                                {AccountTable.Column.AccountType},
+                                {AccountTable.Column.DateCreated}
                             )
                             VALUES
                             (
-                                @{nameof(AccountTable.owner_id)},
-                                @{nameof(AccountTable.account_type)},
-                                @{nameof(AccountTable.date_created)}
+                                @{AccountTable.Column.OwnerId},
+                                @{AccountTable.Column.AccountType},
+                                @{AccountTable.Column.DateCreated}
                             )";
 
         await connection.ExecuteAsync(sqlOwner, dto, transaction);
@@ -65,13 +121,13 @@ internal sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
         string sqlOwner = @$"
                             DELETE
-                            FROM {nameof(Owner)}
-                            WHERE {nameof(OwnerTable.owner_id)} = @{nameof(id)}";
+                            FROM {OwnerTable.Title}
+                            WHERE {OwnerTable.Column.OwnerId} = @{nameof(id)}";
 
         string sqlAccount = @$"
                             DELETE
-                            FROM {nameof(Account)}
-                            WHERE {nameof(AccountTable.owner_id)} = @{nameof(id)}";
+                            FROM {AccountTable.Title}
+                            WHERE {AccountTable.Column.OwnerId} = @{nameof(id)}";
 
         await connection.ExecuteAsync(sqlAccount, new {id}, transaction);
         await connection.ExecuteAsync(sqlOwner, new {id}, transaction);
