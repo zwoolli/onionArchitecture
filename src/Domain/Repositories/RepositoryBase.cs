@@ -4,9 +4,9 @@ namespace Persistance.Repositories;
 
 public abstract class RepositoryBase<T> : IRepository<T> where T : class
 {
-    protected IDBConnector _dbConnector;
+    protected IDbConnector _dbConnector;
 
-    public RepositoryBase(IDBConnector dbConnector)
+    public RepositoryBase(IDbConnector dbConnector)
     {
         this._dbConnector = dbConnector;
     }

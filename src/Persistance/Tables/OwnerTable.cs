@@ -11,6 +11,9 @@ public class OwnerTable
         this.name = owner.Name;
         this.date_of_birth = owner.DateOfBirth;
         this.address = owner.Address;
+        //https://stackoverflow.com/questions/46188867/tolist-argumentnullexception-handling
+        // Tolist doesnt work on null object
+        // Set owner.accounts.select... equal to variable and see what it is
         this.accounts = owner.Accounts.Select(a => new AccountTable(a)).ToList();
     }
     public static string Title { get; } = nameof(Owner);

@@ -5,9 +5,9 @@ using Persistance.Tables;
 using System.Data.Common;
 namespace Persistance.Repositories;
 
-internal sealed class AccountRepository : RepositoryBase<Account>, IAccountRepository
+public sealed class AccountRepository : RepositoryBase<Account>, IAccountRepository
 {
-    public AccountRepository(IDBConnector dbConnector) : base(dbConnector) {}
+    public AccountRepository(IDbConnector dbConnector) : base(dbConnector) {}
 
     public async Task<IEnumerable<Account>> GetAllByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
     {

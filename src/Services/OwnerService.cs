@@ -7,7 +7,7 @@ using Mapster;
 
 namespace Services;
 
-internal sealed class OwnerService : IOwnerService
+public sealed class OwnerService : IOwnerService
 {
     private readonly IRepositoryManager _repositoryManager;
 

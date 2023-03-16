@@ -4,12 +4,12 @@ using System.Data.Common;
 
 namespace Persistance.Repositories;
 
-public class DBConnector : IDBConnector
+public class DbConnector : IDbConnector
 {
     private string _connectionString;
     private DbTransaction? _transaction;
 
-    public DBConnector(IDBconfiguration configuration)
+    public DbConnector(IDbConfiguration configuration)
     {
         this._connectionString = configuration.ConnectionString;
         this._transaction = null;

@@ -5,9 +5,9 @@ using Persistance.Tables;
 using System.Data.Common;
 namespace Persistance.Repositories;
 
-internal sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
+public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 {
-    public OwnerRepository(IDBConnector dbConnector) : base(dbConnector) {}
+    public OwnerRepository(IDbConnector dbConnector) : base(dbConnector) {}
 
     private async Task<IEnumerable<Owner>> _GetAsync(string sql, object? param)
     {

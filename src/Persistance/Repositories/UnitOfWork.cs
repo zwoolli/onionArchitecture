@@ -2,11 +2,11 @@ using Domain.Repositories;
 using System.Data.Common;
 namespace Persistance.Repositories;
 
-internal sealed class UnitOfWork : IUnitOfWork
+public sealed class UnitOfWork : IUnitOfWork
 {
-    private readonly IDBConnector _dbConnector;
+    private readonly IDbConnector _dbConnector;
 
-    public UnitOfWork(IDBConnector dBConnector)
+    public UnitOfWork(IDbConnector dBConnector)
     {
         this._dbConnector = dBConnector;
     }

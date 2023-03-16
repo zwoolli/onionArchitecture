@@ -1,6 +1,6 @@
 namespace Domain.Repositories;
 
-public interface IDBconfiguration
+public interface IDbConfiguration
 {
     public string ConnectionString { get; }
 }

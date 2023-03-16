@@ -7,7 +7,7 @@ using Mapster;
 
 namespace Services;
 
-internal sealed class AccountService : IAccountService
+public sealed class AccountService : IAccountService
 {
     private readonly IRepositoryManager _repositoryManager;
 
