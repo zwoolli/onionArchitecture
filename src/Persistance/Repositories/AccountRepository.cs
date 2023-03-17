@@ -19,11 +19,11 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
         string sql = $@"
                         SELECT  *
                         FROM    {AccountTable.Title}
-                        WHERE   {AccountTable.Column.OwnerId} = {nameof(ownerId)}";
+                        WHERE   {AccountTable.Column.OwnerId} = @{nameof(ownerId)}";
 
-        IEnumerable<Account> accounts = await connection.QueryAsync<Account>(sql, new {ownerId}, transaction);
+        IEnumerable<AccountTable> accounts = await connection.QueryAsync<AccountTable>(sql, new {ownerId}, transaction);
 
-        return accounts;
+        return accounts.Select(a => a.Adapt());
     }
 
     public async Task<Account> GetByIdAsync(Guid accountId, CancellationToken cancellationToken = default)
@@ -39,9 +39,9 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
                         WHERE   {AccountTable.Title}.{AccountTable.Column.AccountId} = @{nameof(accountId)}";
 
 
-        Account account = await connection.QuerySingleAsync<Account>(sql, new {accountId}, transaction);
+        AccountTable account = await connection.QuerySingleAsync<AccountTable>(sql, new {accountId}, transaction);
 
-        return account;
+        return account.Adapt();
     }
 
     public override async Task InsertAsync(Account account)
@@ -54,7 +54,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
                         INSERT INTO {AccountTable.Title} 
                         (
                             {AccountTable.Column.OwnerId},
-                            {AccountTable.Column.AccountType}
+                            {AccountTable.Column.AccountType},
                             {AccountTable.Column.DateCreated}
                         )
                         VALUES 

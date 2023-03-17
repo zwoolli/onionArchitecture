@@ -30,7 +30,7 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
                         ownerDictionary.Add(ownerEntry.owner_id, ownerEntry);
                     }
 
-                    if (accountDto != null) ownerEntry.accounts.Add(accountDto);
+                    if (accountDto != null) ownerEntry.accounts?.Add(accountDto);
                     return ownerEntry;
                 },
                 transaction: transaction,
@@ -68,7 +68,7 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
                         ON          ({OwnerTable.Title}.{OwnerTable.Column.OwnerId} = {AccountTable.Title}.{AccountTable.Column.OwnerId})
                         WHERE       {OwnerTable.Title}.{OwnerTable.Column.OwnerId} = @{nameof(ownerId)}";
 
-        IEnumerable<Owner> owners = await this._GetAsync(sql, ownerId);
+        IEnumerable<Owner> owners = await this._GetAsync(sql, new { ownerId });
 
         Owner owner = owners.DefaultIfEmpty(new Owner()).First();
 
@@ -81,11 +81,11 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
         DbConnection connection = transaction.Connection!;
         OwnerTable dto = new OwnerTable(owner);
 
-        string sqlOwner = $@"
+        string sql = $@"
                             INSERT INTO {OwnerTable.Title} 
                             (
                                 {OwnerTable.Column.Name},
-                                {OwnerTable.Column.DateOfBirth}
+                                {OwnerTable.Column.DateOfBirth},
                                 {OwnerTable.Column.Address}
                             )
                             VALUES 
@@ -95,22 +95,7 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
                                 @{OwnerTable.Column.Address}
                             )";
 
-        string sqlAccount = $@"
-                            INSERT INTO {AccountTable.Title}
-                            (
-                                {AccountTable.Column.OwnerId},
-                                {AccountTable.Column.AccountType},
-                                {AccountTable.Column.DateCreated}
-                            )
-                            VALUES
-                            (
-                                @{AccountTable.Column.OwnerId},
-                                @{AccountTable.Column.AccountType},
-                                @{AccountTable.Column.DateCreated}
-                            )";
-
-        await connection.ExecuteAsync(sqlOwner, dto, transaction);
-        await connection.ExecuteAsync(sqlAccount, dto.accounts, transaction);
+        await connection.ExecuteAsync(sql, dto, transaction);
     }
 
     public override async Task RemoveAsync(Owner owner)
