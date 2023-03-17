@@ -1,21 +1,25 @@
 using Domain.Repositories;
 using System.Data.Common;
+using Npgsql;
+
 namespace Persistance.Repositories;
 
 public sealed class UnitOfWork : IUnitOfWork
 {
-    private readonly IDbConnector _dbConnector;
+    private string _connectionString;
+    private DbTransaction? _transaction;
 
-    public UnitOfWork(IDbConnector dBConnector)
+    public UnitOfWork(IDbConfiguration configuration)
     {
-        this._dbConnector = dBConnector;
+        this._connectionString = configuration.ConnectionString;
+        this._transaction = null;
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        DbTransaction t = await this._dbConnector.Transaction();
+        DbTransaction t = await this.Transaction();
 
         try
         {
@@ -30,5 +34,17 @@ public sealed class UnitOfWork : IUnitOfWork
         {
             await t.DisposeAsync();
         }
+    }
+
+    public async Task<DbTransaction> Transaction()
+    {
+        if (this._transaction is not null && this._transaction.Connection is not null) return this._transaction;
+        if (this._transaction is not null) await this._transaction.DisposeAsync();
+
+        DbConnection connection = new NpgsqlConnection(this._connectionString);
+        await connection.OpenAsync();
+
+        this._transaction = await connection.BeginTransactionAsync();
+        return this._transaction;
     }
 }

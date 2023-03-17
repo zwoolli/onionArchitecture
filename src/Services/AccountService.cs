@@ -9,59 +9,53 @@ namespace Services;
 
 public sealed class AccountService : IAccountService
 {
-    private readonly IRepositoryManager _repositoryManager;
+    private readonly IAccountRepository _accountRepository;
 
-    public AccountService(IRepositoryManager repositoryManager) => this._repositoryManager = repositoryManager;
+    public AccountService(IAccountRepository accountRepository) => this._accountRepository = accountRepository;
 
     public async Task<AccountDto> CreateAsync(Guid ownerId, AccountForCreationDto accountForCreationDto, CancellationToken cancellationToken = default)
     {
-        Owner owner = await this._repositoryManager.OwnerRepository.GetByIdAsync(ownerId, cancellationToken);
+        bool exist = await this._accountRepository.DoesOwnerExist(ownerId, cancellationToken);
 
-        if (owner is null)
-        {
-            throw new OwnerNotFoundException(ownerId);
-        }
+        if (!exist)  throw new OwnerNotFoundException(ownerId);
 
         Account account = accountForCreationDto.Adapt<Account>();
 
-        account.OwnerId = owner.Id;
+        account.OwnerId = ownerId;
 
-        await this._repositoryManager.AccountRepository.InsertAsync(account);
+        await this._accountRepository.InsertAsync(account);
 
-        await this._repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
+        await this._accountRepository.SaveChangesAsync(cancellationToken);
 
         return account.Adapt<AccountDto>();
     }
 
     public async Task DeleteAsync(Guid ownerId, Guid accountId, CancellationToken cancellationToken = default)
     {
-        Owner owner = await this._repositoryManager.OwnerRepository.GetByIdAsync(ownerId, cancellationToken);
+        bool exist = await this._accountRepository.DoesOwnerExist(ownerId, cancellationToken);
 
-        if (owner is null)
-        {
-            throw new OwnerNotFoundException(ownerId);
-        }
+        if (!exist)  throw new OwnerNotFoundException(ownerId);
 
-        Account account = await this._repositoryManager.AccountRepository.GetByIdAsync(accountId, cancellationToken);
+        Account account = await this._accountRepository.GetByIdAsync(accountId, cancellationToken);
 
         if (account is null)
         {
             throw new AccountNotFoundException(accountId);
         }
 
-        if (account.OwnerId != owner.Id)
+        if (account.OwnerId != ownerId)
         {
-            throw new AccountDoesNotBelongToOwnerException(owner.Id, account.Id);
+            throw new AccountDoesNotBelongToOwnerException(ownerId, account.Id);
         }
 
-        await this._repositoryManager.AccountRepository.RemoveAsync(account);
+        await this._accountRepository.RemoveAsync(account);
 
-        await this._repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
+        await this._accountRepository.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<AccountDto>> GetAllByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
     {
-        IEnumerable<Account> accounts = await this._repositoryManager.AccountRepository.GetAllByOwnerIdAsync(ownerId, cancellationToken);
+        IEnumerable<Account> accounts = await this._accountRepository.GetAllByOwnerIdAsync(ownerId, cancellationToken);
 
         IEnumerable<AccountDto> accountDtos = accounts.Adapt<IEnumerable<AccountDto>>();
 
@@ -70,23 +64,20 @@ public sealed class AccountService : IAccountService
 
     public async Task<AccountDto> GetByIdAsync(Guid ownerId, Guid accountID, CancellationToken cancellationToken = default)
     {
-        Owner owner = await this._repositoryManager.OwnerRepository.GetByIdAsync(ownerId, cancellationToken);
+        bool exist = await this._accountRepository.DoesOwnerExist(ownerId, cancellationToken);
 
-        if (owner is null)
-        {
-            throw new OwnerNotFoundException(ownerId);
-        }
+        if (!exist)  throw new OwnerNotFoundException(ownerId);
 
-        Account account = await this._repositoryManager.AccountRepository.GetByIdAsync(accountID, cancellationToken);
+        Account account = await this._accountRepository.GetByIdAsync(accountID, cancellationToken);
 
         if (account is null)
         {
             throw new AccountNotFoundException(accountID);
         }
 
-        if (account.OwnerId != owner.Id)
+        if (account.OwnerId != ownerId)
         {
-            throw new AccountDoesNotBelongToOwnerException(owner.Id, account.Id);
+            throw new AccountDoesNotBelongToOwnerException(ownerId, account.Id);
         }
 
         AccountDto accountDto = account.Adapt<AccountDto>();

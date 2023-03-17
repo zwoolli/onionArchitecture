@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Domain.Repositories;
 using Presentation.Controllers;
 using Persistance.Repositories;
-using Services.Abstractions;
 using Services;
 
 namespace Web;
@@ -21,26 +20,24 @@ public sealed class ControllerActivator : IControllerActivator, IDisposable
     public ControllerBase Create(ControllerContext context, Type controllerType)
     {
         // Scoped services
-        IDbConnector dbConnector = new DbConnector(this._dbConfiguration);
+        IUnitOfWork unitOfWork = new UnitOfWork(this._dbConfiguration);
 
-        IRepositoryManager repositoryManager = new RepositoryManager(
-            new OwnerRepository(dbConnector),
-            new AccountRepository(dbConnector),
-            new UnitOfWork(dbConnector)
-        );
-
-        IServiceManager serviceManager = new ServiceManager(
-            new OwnerService(repositoryManager),
-            new AccountService(repositoryManager)
-        );
 
         switch (controllerType.Name)
         {
             case nameof(OwnersController):
-                return new OwnersController(serviceManager);
+                return new OwnersController(
+                    new OwnerService(
+                        new OwnerRepository(unitOfWork)
+                    )
+                );
 
             case nameof(AccountsController):
-                return new AccountsController(serviceManager);
+                return new AccountsController(
+                    new AccountService(
+                        new AccountRepository(unitOfWork)
+                    )
+                );
 
             default:
             throw new InvalidOperationException($"Unknown controller {controllerType}.");

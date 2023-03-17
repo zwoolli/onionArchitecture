@@ -7,11 +7,11 @@ namespace Persistance.Repositories;
 
 public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 {
-    public OwnerRepository(IDbConnector dbConnector) : base(dbConnector) {}
+    public OwnerRepository(IUnitOfWork unitOfWork) : base(unitOfWork) {}
 
     private async Task<IEnumerable<Owner>> _GetAsync(string sql, object? param)
     {
-        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbTransaction transaction = await this.Transaction();
         DbConnection connection = transaction.Connection!;
 
         Dictionary<Guid, OwnerTable> ownerDictionary = new Dictionary<Guid, OwnerTable>();
@@ -77,7 +77,7 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
     public override async Task InsertAsync(Owner owner)
     {
-        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbTransaction transaction = await this.Transaction();
         DbConnection connection = transaction.Connection!;
         OwnerTable dto = new OwnerTable(owner);
 
@@ -100,7 +100,7 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
     public override async Task RemoveAsync(Owner owner)
     {
-        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbTransaction transaction = await this.Transaction();
         DbConnection connection = transaction.Connection!;
         Guid id = owner.Id;
 

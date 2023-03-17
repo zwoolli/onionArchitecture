@@ -7,13 +7,13 @@ namespace Persistance.Repositories;
 
 public sealed class AccountRepository : RepositoryBase<Account>, IAccountRepository
 {
-    public AccountRepository(IDbConnector dbConnector) : base(dbConnector) {}
+    public AccountRepository(IUnitOfWork unitOfWork) : base(unitOfWork) {}
 
     public async Task<IEnumerable<Account>> GetAllByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbTransaction transaction = await this.Transaction();
         DbConnection connection = transaction.Connection!;
 
         string sql = $@"
@@ -30,7 +30,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
     {
         cancellationToken.ThrowIfCancellationRequested();
         
-        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbTransaction transaction = await this.Transaction();
         DbConnection connection = transaction.Connection!;
 
         string sql = $@"
@@ -46,7 +46,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
 
     public override async Task InsertAsync(Account account)
     {
-        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbTransaction transaction = await this.Transaction();
         DbConnection connection = transaction.Connection!;
         AccountTable dto = new AccountTable(account);
 
@@ -69,7 +69,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
 
     public override async Task RemoveAsync(Account account)
     {
-        DbTransaction transaction = await this._dbConnector.Transaction();
+        DbTransaction transaction = await this.Transaction();
         DbConnection connection = transaction.Connection!;
         Guid id = account.Id;
 
@@ -79,5 +79,22 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
                             WHERE {AccountTable.Column.AccountId} = @{nameof(id)}";
 
         await connection.ExecuteAsync(sql, new {id}, transaction);
+    }
+
+    public async Task<bool> DoesOwnerExist(Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        DbTransaction transaction = await this.Transaction();
+        DbConnection connection = transaction.Connection!;
+
+        string sql = $@"
+                        SELECT EXISTS(
+                            SELECT  *
+                            FROM    {OwnerTable.Title}
+                            WHERE   {OwnerTable.Column.OwnerId} = @{nameof(ownerId)}
+                        )";
+
+        return await connection.ExecuteScalarAsync<bool>(sql, new { ownerId }, transaction);
     }
 }
