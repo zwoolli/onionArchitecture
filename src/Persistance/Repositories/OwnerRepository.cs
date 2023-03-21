@@ -48,9 +48,9 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
         string sql = $@"
                         SELECT      *
-                        FROM        {OwnerTable.Title}
-                        LEFT JOIN   {AccountTable.Title}
-                        ON          ({OwnerTable.Title}.{OwnerTable.Column.OwnerId} = {AccountTable.Title}.{AccountTable.Column.OwnerId})";
+                        FROM        {OwnerTable.Name}
+                        LEFT JOIN   {AccountTable.Name}
+                        ON          ({OwnerTable.Name}.{OwnerTable.Column.OwnerId} = {AccountTable.Name}.{AccountTable.Column.OwnerId})";
 
         IEnumerable<Owner> owners = await this._GetAsync(sql, null);
 
@@ -63,10 +63,10 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
         
         string sql = $@"
                         SELECT      *
-                        FROM        {OwnerTable.Title}
-                        LEFT JOIN   {AccountTable.Title}
-                        ON          ({OwnerTable.Title}.{OwnerTable.Column.OwnerId} = {AccountTable.Title}.{AccountTable.Column.OwnerId})
-                        WHERE       {OwnerTable.Title}.{OwnerTable.Column.OwnerId} = @{nameof(ownerId)}";
+                        FROM        {OwnerTable.Name}
+                        LEFT JOIN   {AccountTable.Name}
+                        ON          ({OwnerTable.Name}.{OwnerTable.Column.OwnerId} = {AccountTable.Name}.{AccountTable.Column.OwnerId})
+                        WHERE       {OwnerTable.Name}.{OwnerTable.Column.OwnerId} = @{nameof(ownerId)}";
 
         IEnumerable<Owner> owners = await this._GetAsync(sql, new { ownerId });
 
@@ -82,7 +82,7 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
         OwnerTable dto = new OwnerTable(owner);
 
         string sql = $@"
-                            INSERT INTO {OwnerTable.Title} 
+                            INSERT INTO {OwnerTable.Name} 
                             (
                                 {OwnerTable.Column.Name},
                                 {OwnerTable.Column.DateOfBirth},
@@ -106,15 +106,32 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
         string sqlOwner = @$"
                             DELETE
-                            FROM {OwnerTable.Title}
+                            FROM {OwnerTable.Name}
                             WHERE {OwnerTable.Column.OwnerId} = @{nameof(id)}";
 
         string sqlAccount = @$"
                             DELETE
-                            FROM {AccountTable.Title}
+                            FROM {AccountTable.Name}
                             WHERE {AccountTable.Column.OwnerId} = @{nameof(id)}";
 
         await connection.ExecuteAsync(sqlAccount, new {id}, transaction);
         await connection.ExecuteAsync(sqlOwner, new {id}, transaction);
+    }
+
+    public async Task UpdateAsync(Owner owner)
+    {
+        DbTransaction transaction = await this.Transaction();
+        DbConnection connection = transaction.Connection!;
+        OwnerTable dto = new OwnerTable(owner);
+
+        string sql = @$"
+                        UPDATE  {OwnerTable.Name}
+                        SET     
+                            {OwnerTable.Column.Name} = @{nameof(dto.name)},
+                            {OwnerTable.Column.DateOfBirth} = @{nameof(dto.date_of_birth)},
+                            {OwnerTable.Column.Address} = @{nameof(dto.address)}
+                        WHERE {OwnerTable.Column.OwnerId} = @{nameof(dto.owner_id)}";
+
+        await connection.ExecuteAsync(sql, dto, transaction);
     }
 }

@@ -13,7 +13,7 @@ public class AccountTable
         this.date_created = account.DateCreated;
     }
 
-    public static string Title { get; } = nameof(Account);
+    public static string Name { get; } = nameof(Account);
     public Guid account_id { get; set; }
     public Guid owner_id { get; set; }
     public string account_type { get; set; } = default!;

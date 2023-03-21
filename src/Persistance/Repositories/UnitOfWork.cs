@@ -19,7 +19,7 @@ public sealed class UnitOfWork : IUnitOfWork
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        DbTransaction t = await this.Transaction();
+        DbTransaction t = await this.GetDbTransaction();
 
         try
         {
@@ -36,7 +36,7 @@ public sealed class UnitOfWork : IUnitOfWork
         }
     }
 
-    public async Task<DbTransaction> Transaction()
+    public async Task<DbTransaction> GetDbTransaction()
     {
         if (this._transaction is not null && this._transaction.Connection is not null) return this._transaction;
         if (this._transaction is not null) await this._transaction.DisposeAsync();

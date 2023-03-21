@@ -18,7 +18,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
 
         string sql = $@"
                         SELECT  *
-                        FROM    {AccountTable.Title}
+                        FROM    {AccountTable.Name}
                         WHERE   {AccountTable.Column.OwnerId} = @{nameof(ownerId)}";
 
         IEnumerable<AccountTable> accounts = await connection.QueryAsync<AccountTable>(sql, new {ownerId}, transaction);
@@ -35,8 +35,8 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
 
         string sql = $@"
                         SELECT  *
-                        FROM    {AccountTable.Title}
-                        WHERE   {AccountTable.Title}.{AccountTable.Column.AccountId} = @{nameof(accountId)}";
+                        FROM    {AccountTable.Name}
+                        WHERE   {AccountTable.Name}.{AccountTable.Column.AccountId} = @{nameof(accountId)}";
 
 
         AccountTable account = await connection.QuerySingleAsync<AccountTable>(sql, new {accountId}, transaction);
@@ -51,7 +51,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
         AccountTable dto = new AccountTable(account);
 
         string sql = $@"
-                        INSERT INTO {AccountTable.Title} 
+                        INSERT INTO {AccountTable.Name} 
                         (
                             {AccountTable.Column.OwnerId},
                             {AccountTable.Column.AccountType},
@@ -75,7 +75,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
 
         string sql = @$"
                             DELETE
-                            FROM {AccountTable.Title}
+                            FROM {AccountTable.Name}
                             WHERE {AccountTable.Column.AccountId} = @{nameof(id)}";
 
         await connection.ExecuteAsync(sql, new {id}, transaction);
@@ -91,7 +91,7 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
         string sql = $@"
                         SELECT EXISTS(
                             SELECT  *
-                            FROM    {OwnerTable.Title}
+                            FROM    {OwnerTable.Name}
                             WHERE   {OwnerTable.Column.OwnerId} = @{nameof(ownerId)}
                         )";
 

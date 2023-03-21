@@ -21,6 +21,6 @@ public abstract class RepositoryBase<T> : IRepository<T> where T : class
 
     protected async Task<DbTransaction> Transaction()
     {
-        return await this._unitOfWork.Transaction();
+        return await this._unitOfWork.GetDbTransaction();
     }
 }

@@ -66,17 +66,10 @@ public sealed class OwnerService : IOwnerService
 
     public async Task UpdateAsync(Guid ownerId, OwnerForUpdateDto ownerForUpdateDto, CancellationToken cancellationToken = default)
     {
-        Owner owner = await this._ownerRepository.GetByIdAsync(ownerId, cancellationToken);
+        Owner owner = ownerForUpdateDto.Adapt<Owner>();
 
-        if (owner is null)
-        {
-            throw new OwnerNotFoundException(ownerId);
-        }
-
-        owner.Name = ownerForUpdateDto.Name;
-        owner.DateOfBirth = ownerForUpdateDto.DateOfBirth;
-        owner.Address = ownerForUpdateDto.Address;
-
+        owner.Id = ownerId;
+        await this._ownerRepository.UpdateAsync(owner);
         await this._ownerRepository.SaveChangesAsync(cancellationToken);
     }
 }

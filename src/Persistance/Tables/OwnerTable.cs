@@ -13,7 +13,7 @@ public class OwnerTable
         this.address = owner.Address;
         this.accounts = owner.Accounts?.Select(a => new AccountTable(a)).ToList();
     }
-    public static string Title { get; } = nameof(Owner);
+    public static string Name { get; } = nameof(Owner);
     public Guid owner_id { get; set; }
     public string? name { get; set; }
     public DateTime date_of_birth { get; set; }
