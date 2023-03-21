@@ -19,7 +19,7 @@ public abstract class RepositoryBase<T> : IRepository<T> where T : class
         await this._unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    protected async Task<DbTransaction> Transaction()
+    protected async Task<DbTransaction> GetDbTransaction()
     {
         return await this._unitOfWork.GetDbTransaction();
     }

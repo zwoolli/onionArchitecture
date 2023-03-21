@@ -13,12 +13,12 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
 
         string sql = $@"
                         SELECT  *
-                        FROM    {AccountTable.Name}
+                        FROM    {AccountTable.TableName}
                         WHERE   {AccountTable.Column.OwnerId} = @{nameof(ownerId)}";
 
         IEnumerable<AccountTable> accounts = await connection.QueryAsync<AccountTable>(sql, new {ownerId}, transaction);
@@ -30,13 +30,13 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
     {
         cancellationToken.ThrowIfCancellationRequested();
         
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
 
         string sql = $@"
                         SELECT  *
-                        FROM    {AccountTable.Name}
-                        WHERE   {AccountTable.Name}.{AccountTable.Column.AccountId} = @{nameof(accountId)}";
+                        FROM    {AccountTable.TableName}
+                        WHERE   {AccountTable.TableName}.{AccountTable.Column.AccountId} = @{nameof(accountId)}";
 
 
         AccountTable account = await connection.QuerySingleAsync<AccountTable>(sql, new {accountId}, transaction);
@@ -46,12 +46,12 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
 
     public override async Task InsertAsync(Account account)
     {
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
         AccountTable dto = new AccountTable(account);
 
         string sql = $@"
-                        INSERT INTO {AccountTable.Name} 
+                        INSERT INTO {AccountTable.TableName} 
                         (
                             {AccountTable.Column.OwnerId},
                             {AccountTable.Column.AccountType},
@@ -69,13 +69,13 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
 
     public override async Task RemoveAsync(Account account)
     {
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
         Guid id = account.Id;
 
         string sql = @$"
                             DELETE
-                            FROM {AccountTable.Name}
+                            FROM {AccountTable.TableName}
                             WHERE {AccountTable.Column.AccountId} = @{nameof(id)}";
 
         await connection.ExecuteAsync(sql, new {id}, transaction);
@@ -85,13 +85,13 @@ public sealed class AccountRepository : RepositoryBase<Account>, IAccountReposit
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
 
         string sql = $@"
                         SELECT EXISTS(
                             SELECT  *
-                            FROM    {OwnerTable.Name}
+                            FROM    {OwnerTable.TableName}
                             WHERE   {OwnerTable.Column.OwnerId} = @{nameof(ownerId)}
                         )";
 

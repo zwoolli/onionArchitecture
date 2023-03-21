@@ -11,7 +11,7 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
     private async Task<IEnumerable<Owner>> _GetAsync(string sql, object? param)
     {
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
 
         Dictionary<Guid, OwnerTable> ownerDictionary = new Dictionary<Guid, OwnerTable>();
@@ -48,9 +48,9 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
         string sql = $@"
                         SELECT      *
-                        FROM        {OwnerTable.Name}
-                        LEFT JOIN   {AccountTable.Name}
-                        ON          ({OwnerTable.Name}.{OwnerTable.Column.OwnerId} = {AccountTable.Name}.{AccountTable.Column.OwnerId})";
+                        FROM        {OwnerTable.TableName}
+                        LEFT JOIN   {AccountTable.TableName}
+                        ON          ({OwnerTable.TableName}.{OwnerTable.Column.OwnerId} = {AccountTable.TableName}.{AccountTable.Column.OwnerId})";
 
         IEnumerable<Owner> owners = await this._GetAsync(sql, null);
 
@@ -63,10 +63,10 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
         
         string sql = $@"
                         SELECT      *
-                        FROM        {OwnerTable.Name}
-                        LEFT JOIN   {AccountTable.Name}
-                        ON          ({OwnerTable.Name}.{OwnerTable.Column.OwnerId} = {AccountTable.Name}.{AccountTable.Column.OwnerId})
-                        WHERE       {OwnerTable.Name}.{OwnerTable.Column.OwnerId} = @{nameof(ownerId)}";
+                        FROM        {OwnerTable.TableName}
+                        LEFT JOIN   {AccountTable.TableName}
+                        ON          ({OwnerTable.TableName}.{OwnerTable.Column.OwnerId} = {AccountTable.TableName}.{AccountTable.Column.OwnerId})
+                        WHERE       {OwnerTable.TableName}.{OwnerTable.Column.OwnerId} = @{nameof(ownerId)}";
 
         IEnumerable<Owner> owners = await this._GetAsync(sql, new { ownerId });
 
@@ -77,12 +77,12 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
     public override async Task InsertAsync(Owner owner)
     {
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
         OwnerTable dto = new OwnerTable(owner);
 
         string sql = $@"
-                            INSERT INTO {OwnerTable.Name} 
+                            INSERT INTO {OwnerTable.TableName} 
                             (
                                 {OwnerTable.Column.Name},
                                 {OwnerTable.Column.DateOfBirth},
@@ -100,18 +100,18 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
     public override async Task RemoveAsync(Owner owner)
     {
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
         Guid id = owner.Id;
 
         string sqlOwner = @$"
                             DELETE
-                            FROM {OwnerTable.Name}
+                            FROM {OwnerTable.TableName}
                             WHERE {OwnerTable.Column.OwnerId} = @{nameof(id)}";
 
         string sqlAccount = @$"
                             DELETE
-                            FROM {AccountTable.Name}
+                            FROM {AccountTable.TableName}
                             WHERE {AccountTable.Column.OwnerId} = @{nameof(id)}";
 
         await connection.ExecuteAsync(sqlAccount, new {id}, transaction);
@@ -120,12 +120,12 @@ public sealed class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
 
     public async Task UpdateAsync(Owner owner)
     {
-        DbTransaction transaction = await this.Transaction();
+        DbTransaction transaction = await this.GetDbTransaction();
         DbConnection connection = transaction.Connection!;
         OwnerTable dto = new OwnerTable(owner);
 
         string sql = @$"
-                        UPDATE  {OwnerTable.Name}
+                        UPDATE  {OwnerTable.TableName}
                         SET     
                             {OwnerTable.Column.Name} = @{nameof(dto.name)},
                             {OwnerTable.Column.DateOfBirth} = @{nameof(dto.date_of_birth)},

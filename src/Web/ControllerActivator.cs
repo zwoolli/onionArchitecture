@@ -9,9 +9,9 @@ namespace Web;
 
 public sealed class ControllerActivator : IControllerActivator, IDisposable
 {
-    private readonly IDbConfiguration _dbConfiguration;
+    private readonly IDbConfiguration _dBConfiguration;
 
-    public ControllerActivator(IDbConfiguration dBconfiguration) => this._dbConfiguration = dBconfiguration;
+    public ControllerActivator(IDbConfiguration dBconfiguration) => this._dBConfiguration = dBconfiguration;
     public object Create(ControllerContext context)
     {
         return this.Create(context, context.ActionDescriptor.ControllerTypeInfo.AsType());
@@ -20,7 +20,7 @@ public sealed class ControllerActivator : IControllerActivator, IDisposable
     public ControllerBase Create(ControllerContext context, Type controllerType)
     {
         // Scoped services
-        IUnitOfWork unitOfWork = new UnitOfWork(this._dbConfiguration);
+        IUnitOfWork unitOfWork = new UnitOfWork(this._dBConfiguration);
 
 
         switch (controllerType.Name)
